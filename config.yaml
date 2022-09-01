@@ -7,9 +7,9 @@ disqusShortname: ''
 params:
   banner:
     buttonText: Get Started
-    subtitle: |-
-     # A RESPONSIVE SITE TEMPLATE DESIGNED BY HTML5 UP
-     # AND RELEASED UNDER THE CREATIVE COMMONS.
+   # subtitle: |-
+    #A RESPONSIVE SITE TEMPLATE DESIGNED BY HTML5 UP
+    #AND RELEASED UNDER THE CREATIVE COMMONS.
     title: Hi, my name is Mingqi. This is my portfolio website.
   blog: {}
   contact:
@@ -117,9 +117,4 @@ params:
     title: Massa libero
     url: blogs
     
-    
-knitr::include_graphics("/img/pic1.jpg",error=FALSE)
-
-#Use Brexit_results.csv data found under data folder
-library("readr") 
-brexit_results <- read_csv(here::here("data","brexit_results.csv"))
+  
