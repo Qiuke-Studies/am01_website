@@ -81,10 +81,10 @@ params:
   tiles:
     enable: yes
     showcase:
-      - image: pic01.jpg
+      - image: lbs.jpg
         subtitle: Ipsum Dolor Sit Amet
         title: Aliquam
-        url: blogs/aliquam
+        url: blogs/risk_return
       - image: pic02.jpg
         subtitle: Feugiat Amet Tempus
         title: Tempus
@@ -116,3 +116,10 @@ params:
       amet pharetra et feugiat tempus."
     title: Massa libero
     url: blogs
+    
+    
+knitr::include_graphics("/img/pic1.jpg",error=FALSE)
+
+#Use Brexit_results.csv data found under data folder
+library("readr") 
+brexit_results <- read_csv(here::here("data","brexit_results.csv"))
