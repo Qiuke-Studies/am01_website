@@ -299,7 +299,8 @@ glimpse(yrbss)</code></pre>
 </div>
 <div id="relationship-between-weight-and-physical-activity-level" class="section level2">
 <h2>Relationship Between Weight and Physical Activity Level</h2>
-<p>I am someone who exercises (ie. walks) around 3 days a week, sometimes lower.</p>
+<p>I am someone who exercises (ie. walks) around 3 days a week, sometimes for fewer days. I am therefore interested to see whether the weight of the youth whom exercised fewer than 3 days a week significantly differed from those whom exercised more.</p>
+<p>Firstly, I created a categorical variable: <code>physical_3plus</code> which takes the value <code>yes</code> when that individual exercises for more than 2 days a week, and <code>no</code> when that individual exercises for fewer than 3 days a week. All observations without an activity level are excluded from the analysis to prevent it from skewing the analysis in either direction. There is almost half of individuals as active (&gt;2) individuals who are less active (&lt;3).</p>
 <pre class="r"><code># Create indicator for activity level
 yrbss &lt;- yrbss %&gt;%
   mutate(physical_3plus = ifelse(physically_active_7d &gt;= 3, &quot;yes&quot;, &quot;no&quot;))
@@ -329,6 +330,111 @@ group_by</code></pre>
 ## 1 no              4404      32.4 
 ## 2 yes             8906      65.6 
 ## 3 &lt;NA&gt;             273       2.01</code></pre>
-<pre class="r"><code># There are almost half of individuals as active individuals who are less active. There is also NAs in level of activity in this dataset.</code></pre>
+<p>I then used the <code>physical_3plus</code> variable to calculate the 95% confidence interval of proportion of youth who are not active. The resulting confidence interval was between 31.6% and 33.2%, meaning that we are 95% confident that the proportion of youth in the population who are not active is between 31.6% and 33.2%.</p>
+<pre class="r"><code>prop.test(x = 4404, # number of high schoolers who exercise fewer than 3 days a week
+          n = 13583, # number of total trials
+          p = 0.5, #null hypothesis being that the proportion of population of activity levels equal 
+          alternative = &quot;two.sided&quot;, # two-tailed alternative hypothesis
+          conf.level = 0.95, # 95% confidence internal assuming normal distribution
+          correct = F)</code></pre>
+<pre><code>## 
+##  1-sample proportions test without continuity correction
+## 
+## data:  4404 out of 13583
+## X-squared = 1679, df = 1, p-value &lt;2e-16
+## alternative hypothesis: true p is not equal to 0.5
+## 95 percent confidence interval:
+##  0.316 0.332
+## sample estimates:
+##     p 
+## 0.324</code></pre>
+<p>Graphically, the medians of weight of youth don’t look too different between the two groups and the IQR either, implying that, weights do not differ depending on activity level. However, there are many outliers in both active and non-active groups, which may make the graphic analysis using medians may be misleading, and that we should use mean instead.</p>
+<pre class="r"><code>yrbss %&gt;%
+  filter(!is.na(physical_3plus)) %&gt;%
+  ggplot(aes(x = physical_3plus, y = weight)) +
+  geom_boxplot() +
+  labs(title = &quot;Boxplot of weights for different activity levels&quot;,
+       x = &quot;Activity level&quot;,
+       y = &quot;Weight&quot;) +
+  NULL</code></pre>
+<p><img src="/blogs/youth_risk_files/figure-html/boxplot-1.png" width="648" style="display: block; margin: auto;" /></p>
+<div id="statistical-testing" class="section level3">
+<h3>Statistical Testing</h3>
+<p>Before testing for the difference in means, confidence intervals for both the active and non-active groups are compared. The confidence intervals are (66.2, 67.2) and (68.1, 68.8) respectively. The confidence intervals do not overlap, and therefore, the difference in means should be at least 95% statistically significant.</p>
+<pre class="r"><code>#Calculate summary statistics
+ci_using_formulas &lt;- yrbss %&gt;%
+  select(weight, physical_3plus) %&gt;%
+  filter(!is.na(physical_3plus)) %&gt;%
+  group_by(physical_3plus) %&gt;%
+  summarise(mean = mean(weight, na.rm = TRUE),
+            sd = sd(weight, na.rm = TRUE),
+            count = n(),
+            se = sd / sqrt(count),
+            t = qt(0.975, count-1),
+            margin = t*se,
+            l_ci = mean - margin,
+            h_ci = mean + margin)</code></pre>
+<p>We then move onto statistical testing using both formula and the <code>infer</code> package. Before testing, we should state our null and alternative hypotheses clearly. The null hypothesis (H0) is that mean weights are the same for those who exercise at least 3 times a week, and those who don’t. The alternative hypothesis (H1) is that mean weights are different for those who exercise at least 3 times a week, and those who don’t.</p>
+<p>Test using formula yields a very small p-value. We reject the null hypothesis and that there is evidence to show that there is difference in mean between those who exercise at least 3 times a week, and those who don’t.</p>
+<pre class="r"><code>t.test(weight ~ physical_3plus,
+       alternative = &quot;two.sided&quot;,
+       conf.level = 0.95,
+       data = yrbss)</code></pre>
+<pre><code>## 
+##  Welch Two Sample t-test
+## 
+## data:  weight by physical_3plus
+## t = -5, df = 7479, p-value = 9e-08
+## alternative hypothesis: true difference in means between group no and group yes is not equal to 0
+## 95 percent confidence interval:
+##  -2.42 -1.12
+## sample estimates:
+##  mean in group no mean in group yes 
+##              66.7              68.4</code></pre>
+<p>Testing using infer again yielded a very statistically significant difference in weight between the two activity groups.</p>
+<p>We first initialise the test by calculating the means in this sample.</p>
+<pre class="r"><code>obs_diff &lt;- yrbss %&gt;%
+  filter(!is.na(physical_3plus)) %&gt;% # filter so that there are no NAs
+  specify(weight ~ physical_3plus) %&gt;%
+  calculate(stat = &quot;diff in means&quot;, order = c(&quot;yes&quot;, &quot;no&quot;))
+
+obs_diff #1.77 difference in means in this sample</code></pre>
+<pre><code>## Response: weight (numeric)
+## Explanatory: physical_3plus (factor)
+## # A tibble: 1 × 1
+##    stat
+##   &lt;dbl&gt;
+## 1  1.77</code></pre>
+<p>We then simulate the null hypothesis using <code>infer</code>.</p>
+<pre class="r"><code>set.seed(1234)
+
+null_dist &lt;- yrbss %&gt;%
+  filter(!is.na(physical_3plus)) %&gt;%
+  # specify variables
+  specify(weight ~ physical_3plus) %&gt;%
+  
+  # assume independence, i.e, there is no difference
+  hypothesize(null = &quot;independence&quot;) %&gt;%
+  
+  # generate 1000 reps, of type &quot;permute&quot;
+  generate(reps = 1000, type = &quot;permute&quot;) %&gt;%
+  
+  # calculate statistic of difference, namely &quot;diff in means&quot;
+  calculate(stat = &quot;diff in means&quot;, order = c(&quot;yes&quot;, &quot;no&quot;))</code></pre>
+<p>Finally, we visualise and plot the test.</p>
+<pre class="r"><code>ggplot(data = null_dist, aes(x = stat)) +
+  geom_histogram()  </code></pre>
+<p><img src="/blogs/youth_risk_files/figure-html/visualise_and_plot-1.png" width="648" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>null_dist %&gt;% visualize() +
+  shade_p_value(obs_stat = obs_diff, direction = &quot;two-sided&quot;)</code></pre>
+<p><img src="/blogs/youth_risk_files/figure-html/visualise_and_plot-2.png" width="648" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>null_dist %&gt;%
+  get_p_value(obs_stat = obs_diff, direction = &quot;two_sided&quot;)</code></pre>
+<pre><code>## # A tibble: 1 × 1
+##   p_value
+##     &lt;dbl&gt;
+## 1       0</code></pre>
+<p>In conclusion, we found that the weights significantly differ between the two activity groups - even more incentive to do more exercise!</p>
+</div>
 </div>
 </div>

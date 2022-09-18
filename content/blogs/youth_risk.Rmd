@@ -76,8 +76,9 @@ yrbss %>%
 ```
 
 ## Relationship Between Weight and Physical Activity Level
-I am someone who exercises (ie. walks) around 3 days a week, sometimes lower. 
+I am someone who exercises (ie. walks) around 3 days a week, sometimes for fewer days. I am therefore interested to see whether the weight of the youth whom exercised fewer than 3 days a week significantly differed from those whom exercised more. 
 
+Firstly, I created a categorical variable: `physical_3plus` which takes the value `yes` when that individual exercises for more than 2 days a week, and `no` when that individual exercises for fewer than 3 days a week. All observations without an activity level are excluded from the analysis to prevent it from skewing the analysis in either direction. There is almost half of individuals as active (>2) individuals who are less active (<3).
 
 ```{r, mutate_and_count}
 # Create indicator for activity level
@@ -98,8 +99,113 @@ group_by <- yrbss %>%
   mutate(percentage = count/sum(count) * 100)
 
 group_by
-
-# There are almost half of individuals as active individuals who are less active. There is also NAs in level of activity in this dataset.
 ```
 
+I then used the `physical_3plus` variable to calculate the 95% confidence interval of proportion of youth who are not active. The resulting confidence interval was between 31.6% and 33.2%, meaning that we are 95% confident that the proportion of youth in the population who are not active is between 31.6% and 33.2%. 
+
+```{r, CI}
+prop.test(x = 4404, # number of high schoolers who exercise fewer than 3 days a week
+          n = 13583, # number of total trials
+          p = 0.5, #null hypothesis being that the proportion of population of activity levels equal 
+          alternative = "two.sided", # two-tailed alternative hypothesis
+          conf.level = 0.95, # 95% confidence internal assuming normal distribution
+          correct = F)
+
+```
+
+Graphically, the medians of weight of youth don't look too different between the two groups and the IQR either, implying that, weights do not differ depending on activity level. However, there are many outliers in both active and non-active groups, which may make the graphic analysis using medians may be misleading, and that we should use mean instead.
+
+```{r, boxplot}
+yrbss %>%
+  filter(!is.na(physical_3plus)) %>%
+  ggplot(aes(x = physical_3plus, y = weight)) +
+  geom_boxplot() +
+  labs(title = "Boxplot of weights for different activity levels",
+       x = "Activity level",
+       y = "Weight") +
+  NULL
+```
+
+### Statistical Testing
+Before testing for the difference in means, confidence intervals for both the active and non-active groups are compared. The confidence intervals are (66.2, 67.2) and (68.1, 68.8) respectively. The confidence intervals do not overlap, and therefore, the difference in means should be at least 95% statistically significant.
+
+```{r, ci_using_formulas}
+#Calculate summary statistics
+ci_using_formulas <- yrbss %>%
+  select(weight, physical_3plus) %>%
+  filter(!is.na(physical_3plus)) %>%
+  group_by(physical_3plus) %>%
+  summarise(mean = mean(weight, na.rm = TRUE),
+            sd = sd(weight, na.rm = TRUE),
+            count = n(),
+            se = sd / sqrt(count),
+            t = qt(0.975, count-1),
+            margin = t*se,
+            l_ci = mean - margin,
+            h_ci = mean + margin)
+
+```
+
+We then move onto statistical testing using both formula and the `infer` package. Before testing, we should state our null and alternative hypotheses clearly. The null hypothesis (H0) is that mean weights are the same for those who exercise at least 3 times a week, and those who don't. The alternative hypothesis (H1) is that mean weights are different for those who exercise at least 3 times a week, and those who don't.
+
+Test using formula yields a very small p-value. We reject the null hypothesis and that there is evidence to show that there is difference in mean between those who exercise at least 3 times a week, and those who don't.
+
+```{r, t_test_using_R}
+t.test(weight ~ physical_3plus,
+       alternative = "two.sided",
+       conf.level = 0.95,
+       data = yrbss)
+
+```
+
+Testing using infer again yielded a very statistically significant difference in weight between the two activity groups. 
+
+We first initialise the test by calculating the means in this sample.
+
+```{r, calc_obs_difference}
+obs_diff <- yrbss %>%
+  filter(!is.na(physical_3plus)) %>% # filter so that there are no NAs
+  specify(weight ~ physical_3plus) %>%
+  calculate(stat = "diff in means", order = c("yes", "no"))
+
+obs_diff #1.77 difference in means in this sample
+```
+
+We then simulate the null hypothesis using `infer`.
+
+```{r, hypothesis_testing_using_infer_package}
+
+set.seed(1234)
+
+null_dist <- yrbss %>%
+  filter(!is.na(physical_3plus)) %>%
+  # specify variables
+  specify(weight ~ physical_3plus) %>%
+  
+  # assume independence, i.e, there is no difference
+  hypothesize(null = "independence") %>%
+  
+  # generate 1000 reps, of type "permute"
+  generate(reps = 1000, type = "permute") %>%
+  
+  # calculate statistic of difference, namely "diff in means"
+  calculate(stat = "diff in means", order = c("yes", "no"))
+
+```
+
+Finally, we visualise and plot the test.
+
+```{r, visualise_and_plot}
+ggplot(data = null_dist, aes(x = stat)) +
+  geom_histogram()  
+
+null_dist %>% visualize() +
+  shade_p_value(obs_stat = obs_diff, direction = "two-sided")
+
+null_dist %>%
+  get_p_value(obs_stat = obs_diff, direction = "two_sided")
+
+```
+
+In conclusion, we found that the weights significantly differ between the two activity groups - even more incentive to do more exercise!
 
