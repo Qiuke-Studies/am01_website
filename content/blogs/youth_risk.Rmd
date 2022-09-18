@@ -48,11 +48,58 @@ library(openintro)
 library(dplyr)
 ```
 
-# Youth Risk Behaviour Surveillance Survey
-Every two years, the Centers for Disease Control and Prevention conduct the [Youth Risk Behavior Surveillance System (YRBSS)](https://www.cdc.gov/healthyyouth/data/yrbs/index.htm) survey, where it takes data from high schoolers (9th through 12th grade), to analyze health patterns. You will work with a selected group of variables from a random sample of observations during one of the years the YRBSS was conducted.
+# Dataset
+Every two years, the Centers for Disease Control and Prevention conduct the [Youth Risk Behavior Surveillance System (YRBSS)](https://www.cdc.gov/healthyyouth/data/yrbs/index.htm) survey, where it takes data from high schoolers (9th through 12th grade), to analyze health patterns.
 
 ```{r, load_data}
 data(yrbss)
 glimpse(yrbss)
 ```
+
+# Weight and the level of activity
+One relationship we might be interested in exploring is the activity level and the weight of the individual. 
+
+## Exploratory Data Analysis (EDA)
+By running an EDA on weight, we can see that weight is relatively right-skewed, meaning that most youth are of lower weight relative to the range of weights, and few youth are obese in the sample. 
+
+```{r, eda_on_weight}
+
+skim(yrbss) #count number of NAs in weight - 1004; summary statistics
+
+yrbss %>%
+  ggplot(aes(x = weight)) +
+    geom_density() +
+    theme_bw() +
+    labs(title = "Distribution of Youth Weight",
+         x = "Weight", 
+         y = "Density")
+```
+
+## Relationship Between Weight and Physical Activity Level
+I am someone who exercises (ie. walks) around 3 days a week, sometimes lower. 
+
+
+```{r, mutate_and_count}
+# Create indicator for activity level
+yrbss <- yrbss %>%
+  mutate(physical_3plus = ifelse(physically_active_7d >= 3, "yes", "no"))
+
+#Count number of individuals active versus not active using count
+count <- yrbss %>%
+  count(physical_3plus) %>%
+  mutate(percentage = n/sum(n) * 100)
+
+count
+
+#Count number of individuals active versus not active using group_by & summarise
+group_by <- yrbss %>%
+  group_by(physical_3plus) %>%
+  summarise(count = n()) %>%
+  mutate(percentage = count/sum(count) * 100)
+
+group_by
+
+# There are almost half of individuals as active individuals who are less active. There is also NAs in level of activity in this dataset.
+```
+
 
