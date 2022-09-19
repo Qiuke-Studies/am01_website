@@ -81,11 +81,11 @@ params:
   tiles:
     enable: yes
     showcase:
-      - image: lbs.jpg
+      - image: fringe.jpg
         subtitle: My Short Biography
         title: Hello! 
         url: blogs/introduction
-      - image: pic02.jpg
+      - image: youth_risk.jpg
         subtitle: Youth Risk Behavior Surveillance System
         title: Weight vs. Activity Level
         url: blogs/youth_risk
