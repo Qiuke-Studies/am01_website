@@ -63,9 +63,9 @@ params:
     button1:
       - name: Get Started
         url: blogs
-    button2:
-      - name: Log In
-        url: '#'
+#    button2:
+   #   - name: Log In
+     #   url: '#'
     links:
       - name: Home
         url: '#'
@@ -107,7 +107,7 @@ params:
         url: blogs/ipsum
   two:
     buttonText: Get Started
-    enable: yes
+    enable: no
     subtitle: "Nullam et orci eu lorem consequat tincidunt vivamus et sagittis libero.
       \n    Mauris aliquet magna magna sed nunc rhoncus pharetra. \n    Pellentesque
       condimentum sem. In efficitur ligula tate urna. Maecenas laoreet massa vel lacinia
