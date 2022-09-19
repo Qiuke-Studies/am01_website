@@ -45,13 +45,9 @@ library(openintro)
 library(dplyr)
 ```
 
-# Introduction
-
-Gender wage inequality has long been the subject of public interest. As a woman, I am very interested in this topic - even interested enough to write a dissertation about it! 
-
 # Dataset
 
-The headquarters of a large multinational company Omega Group Plc. compiled a dataset on the gender, pay and years of experience  of executivesWe use the sample of the 50 executives 
+We use the sample of the 
 
 
 ```{r load_omega_data}
