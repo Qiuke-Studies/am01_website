@@ -1,5 +1,5 @@
 baseURL: https://mingqi-portfolio.netlify.app/ 
-languageCode: en-us
+languageCode: en-uk
 title: Portfolio Website for Mingqi Yin
 theme: forty
 googleAnalytics: ''
@@ -20,9 +20,12 @@ params:
         title: Address
     buttonClear: Clear
     buttonSend: Send message
+
+    
     email:
       - email: myin.mam2023@london.edu
         title: Email
+        url: mailto:myin.mam2023@london.edu
     enable: yes
     phone:
       - phone: +44 7826 084393
@@ -41,22 +44,22 @@ params:
       - alt: HTML5 UP
         text: 'Design: '
         url: https://www.html5up.net
-  #  social:
+    social:
    #   - icon: fa-twitter
     #    label: Twitter
      #   url: https://www.twitter.com
-      #- icon: fa-facebook
-       # label: Facebook
-    #    url: https://www.facebook.com
-     # - icon: fa-instagram
-      #  label: Instagram
-       # url: https://www.instagram.com
-   #   - icon: fa-github
-    #    label: GitHub
-     #   url: https://www.github.com
-      #- icon: fa-linkedin
-       # label: LinkedIn
-        #url: https://www.linkedin.com
+      - icon: fa-facebook
+        label: Facebook
+        url: https://www.facebook.com/ymq.rachel/
+      - icon: fa-instagram
+        label: Instagram
+        url: https://www.instagram.com/yin_mq/
+      - icon: fa-github
+        label: GitHub
+        url: https://github.com/Qiuke-Studies
+      - icon: fa-linkedin
+        label: LinkedIn
+        url: https://www.linkedin.com/in/mqyin/
   image: ''
   name: Your name
   navigation:
