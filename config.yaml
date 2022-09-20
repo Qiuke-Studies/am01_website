@@ -20,8 +20,6 @@ params:
         title: Address
     buttonClear: Clear
     buttonSend: Send message
-
-    
     email:
       - email: myin.mam2023@london.edu
         title: Email
